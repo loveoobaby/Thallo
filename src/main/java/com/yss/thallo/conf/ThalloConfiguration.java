@@ -4,6 +4,12 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration;
 
 public class ThalloConfiguration extends YarnConfiguration {
 
+    public static final String THALLO_JOB_CONFIGURATION = "thallo-config.xml";
+
+    static {
+        YarnConfiguration.addDefaultResource(THALLO_JOB_CONFIGURATION);
+    }
+
     public ThalloConfiguration(){
         super();
     }
@@ -22,6 +28,11 @@ public class ThalloConfiguration extends YarnConfiguration {
     public static final String DEFAULT_QUEUE = "default";
 
     public static final String THALLO_QUEUE = "thallo.queue";
+
+    public static final String THALLO_STAGING_DIR = "thallo.staging.dir";
+
+    public static final String DEFAULT_THALLO_STAGING_DIR = "/tmp/thallo/staging";
+
 
 
 }

@@ -1,7 +1,9 @@
 package com.yss.thallo.client;
 
+import com.yss.thallo.AM.ThalloApplicationMaster;
 import com.yss.thallo.conf.ThalloConfiguration;
 import org.apache.commons.cli.*;
+import org.apache.hadoop.mapred.JobConf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +32,8 @@ public class ClientArguments {
     // queue
     String queue;
 
+    String appMasterJar;
+
 
     public ClientArguments(String[] args) throws ParseException {
         this.init();
@@ -39,7 +43,7 @@ public class ClientArguments {
     private void init(){
         appName = "";
         appType = ThalloConfiguration.DEFAULT_APP_TYPE;
-        amMem = ThalloConfiguration.DEDAULT_THALLO_AM_VCORE;
+        amMem = ThalloConfiguration.DEFAULT_THALLO_AM_MEMORY;
         amCores = ThalloConfiguration.DEFAULT_THALLO_AM_MEMORY;
         queue = ThalloConfiguration.DEFAULT_QUEUE;
 
@@ -56,7 +60,8 @@ public class ClientArguments {
 
         allOptions.addOption("h", "help", false, "Print usage");
 
-
+        appMasterJar = JobConf.findContainingJar(ThalloApplicationMaster.class);
+        logger.info("Application Master's jar is " + appMasterJar);
     }
 
     private void cliParser(String[] args) throws ParseException {

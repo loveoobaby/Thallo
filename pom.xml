@@ -70,6 +70,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-core</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
             <version>${vertx.version}</version>
@@ -164,6 +170,11 @@
                                       tofile="${project.basedir}/target/thallo/lib/${profiles.jarName}.jar"/>
                                 <copy file="${project.basedir}/bin/thallo-submit.sh"
                                       tofile="${project.basedir}/target/thallo/bin/thallo-submit.sh"/>
+                                <exec executable="sh"
+                                      dir="${project.build.directory}/thallo/bin">
+                                      <!--spawn="true">-->
+                                    <arg value="thallo-submit.sh"/>
+                                </exec>
                             </target>
                         </configuration>
                     </execution>
