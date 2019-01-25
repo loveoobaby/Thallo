@@ -22,14 +22,34 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
             <version>${hadoop.version}</version>
-            <scope>provided</scope>
+            <!--<scope>provided</scope>-->
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-yarn-client</artifactId>
             <version>${hadoop.version}</version>
-            <scope>provided</scope>
+            <!--<scope>provided</scope>-->
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -56,6 +76,16 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.1.11</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.1.11</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.22</version>
         </dependency>
     </dependencies>
 
@@ -87,6 +117,12 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>${profiles.mainClass}</mainClass>
+                                </transformer>
+                            </transformers>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                         </configuration>
                     </execution>
@@ -108,7 +144,7 @@
                             <target>
                                 <echo message="copy to jar package: ${profiles.jarName}"/>
                                 <copy file="${project.basedir}/target/${artifactId}-${version}.jar"
-                                      tofile="${project.basedir}/target/${profiles.jarName}-fat.jar"/>
+                                      tofile="${project.basedir}/target/${profiles.jarName}.jar"/>
                             </target>
                         </configuration>
                     </execution>
@@ -119,10 +155,10 @@
 
     <profiles>
         <profile>
-            <id>jdbc</id>
+            <id>client</id>
             <properties>
-                <profiles.mainClass>com.yss.thallo.jdbc.JdbcVerticle</profiles.mainClass>
-                <profiles.jarName>vertx-jdbc</profiles.jarName>
+                <profiles.mainClass>com.yss.thallo.client.Client</profiles.mainClass>
+                <profiles.jarName>thallo-hadoop-${hadoop.version}</profiles.jarName>
             </properties>
             <activation>
                 <activeByDefault>true</activeByDefault>
