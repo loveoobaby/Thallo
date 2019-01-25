@@ -7,6 +7,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.client.api.YarnClient;
+import org.apache.hadoop.yarn.client.api.YarnClientApplication;
+import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +23,7 @@ public class Client {
     private final FileSystem dfs;
     private YarnClient yarnClient;
     private ClientArguments clientArguments;
+    private YarnClientApplication newAPP;
 
     private Client(String[] args) throws IOException, ParseException {
         this.conf = new ThalloConfiguration();
@@ -31,7 +34,7 @@ public class Client {
 
     }
 
-    private void init(){
+    private void init() throws IOException, YarnException {
         String appSubmitterUserName = System.getenv(ApplicationConstants.Environment.USER.name());
         if (conf.get("hadoop.job.ugi") == null) {
             UserGroupInformation ugi = UserGroupInformation.createRemoteUser(appSubmitterUserName);
@@ -39,6 +42,14 @@ public class Client {
         }
         conf.set(ThalloConfiguration.THALLO_AM_MEMORY, String.valueOf(clientArguments.amMem));
         conf.set(ThalloConfiguration.THALLO_AM_VCORES, String.valueOf(clientArguments.amCores));
+        conf.set(ThalloConfiguration.THALLO_QUEUE, clientArguments.queue);
+
+        yarnClient = YarnClient.createYarnClient();
+        yarnClient.init(conf);
+        yarnClient.start();
+
+        logger.info("Requesting a new application from cluster with " + yarnClient.getYarnClusterMetrics().getNumNodeManagers() + " NodeManagers");
+        newAPP = yarnClient.createApplication();
 
     }
 
@@ -59,11 +70,13 @@ public class Client {
 
 
     public static void main(String[] args) {
-        showWelcome(); 
+        showWelcome();
         try{
             logger.info("Initializing Client");
             Client client = new Client(args);
             client.init();
+
+
 
 
 

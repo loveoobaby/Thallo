@@ -22,7 +22,7 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
             <version>${hadoop.version}</version>
-            <!--<scope>provided</scope>-->
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <artifactId>log4j</artifactId>
@@ -39,7 +39,24 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-yarn-client</artifactId>
             <version>${hadoop.version}</version>
-            <!--<scope>provided</scope>-->
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <artifactId>log4j</artifactId>
@@ -144,7 +161,9 @@
                             <target>
                                 <echo message="copy to jar package: ${profiles.jarName}"/>
                                 <copy file="${project.basedir}/target/${artifactId}-${version}.jar"
-                                      tofile="${project.basedir}/target/${profiles.jarName}.jar"/>
+                                      tofile="${project.basedir}/target/thallo/lib/${profiles.jarName}.jar"/>
+                                <copy file="${project.basedir}/bin/thallo-submit.sh"
+                                      tofile="${project.basedir}/target/thallo/bin/thallo-submit.sh"/>
                             </target>
                         </configuration>
                     </execution>

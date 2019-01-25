@@ -39,8 +39,8 @@ public class ClientArguments {
     private void init(){
         appName = "";
         appType = ThalloConfiguration.DEFAULT_APP_TYPE;
-        amMem = ThalloConfiguration.DEFAULT_AM_MEMORY;
-        amCores = ThalloConfiguration.DEFAULT_AM_VCORE;
+        amMem = ThalloConfiguration.DEDAULT_THALLO_AM_VCORE;
+        amCores = ThalloConfiguration.DEFAULT_THALLO_AM_MEMORY;
         queue = ThalloConfiguration.DEFAULT_QUEUE;
 
         allOptions = new Options();
@@ -61,10 +61,10 @@ public class ClientArguments {
 
     private void cliParser(String[] args) throws ParseException {
         CommandLine cliParser = new BasicParser().parse(allOptions, args);
-        if (cliParser.getOptions().length == 0 || cliParser.hasOption("help") || cliParser.hasOption("h")) {
-            printUsage(allOptions);
-            System.exit(0);
-        }
+//        if (cliParser.getOptions().length == 0 || cliParser.hasOption("help") || cliParser.hasOption("h")) {
+//            printUsage(allOptions);
+//            System.exit(0);
+//        }
 
         if (cliParser.hasOption("app-name")) {
             appName = cliParser.getOptionValue("app-name");
