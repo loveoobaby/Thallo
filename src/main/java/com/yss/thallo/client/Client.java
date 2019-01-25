@@ -59,7 +59,7 @@ public class Client {
 
 
     public static void main(String[] args) {
-        showWelcome();
+        showWelcome(); 
         try{
             logger.info("Initializing Client");
             Client client = new Client(args);
