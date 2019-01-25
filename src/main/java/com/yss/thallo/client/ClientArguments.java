@@ -44,7 +44,7 @@ public class ClientArguments {
         appName = "";
         appType = ThalloConfiguration.DEFAULT_APP_TYPE;
         amMem = ThalloConfiguration.DEFAULT_THALLO_AM_MEMORY;
-        amCores = ThalloConfiguration.DEFAULT_THALLO_AM_MEMORY;
+        amCores = ThalloConfiguration.DEDAULT_THALLO_AM_VCORE;
         queue = ThalloConfiguration.DEFAULT_QUEUE;
 
         allOptions = new Options();

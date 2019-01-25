@@ -1,9 +1,11 @@
 package com.yss.thallo.client;
 
 
+import com.yss.thallo.AM.ThalloApplicationMaster;
 import com.yss.thallo.conf.ThalloConfiguration;
 import com.yss.thallo.util.Utilities;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -15,6 +17,7 @@ import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
 import org.apache.hadoop.yarn.api.records.*;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.client.api.YarnClientApplication;
+import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
@@ -23,9 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 
 public class Client {
@@ -73,40 +74,38 @@ public class Client {
 
 
         Path jobConfPath = uploadConfigFile();
+        Path appMasterJarPath = uploadAppMasterJar();
 
+        Map<String, LocalResource> resources = prepareLocalResource(jobConfPath, appMasterJarPath);
 
-//        String jarPath = "D:\\yarn_app_demo\\yarn_demo_app\\target\\yarn_demo_app-shade.jar";
-//        Map<String, LocalResource> resources = prepareLocalResource(jarPath, destPath);
-//
-//        ContainerLaunchContext amClc = Records.newRecord(ContainerLaunchContext.class);
-//        amClc.setLocalResources(resources);
-//        amClc.setEnvironment(prepareEnv());
-//
-//        String userCmd = "$JAVA_HOME/bin/java "  +
-//                " -server -Xms" + 100 + "m -Xmx" + 100 + "m" +
-//                " " + amMainClass +
-//                " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" +
-//                " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr";
-//        amClc.setCommands(Collections.singletonList(userCmd));
+        ContainerLaunchContext amClc = Records.newRecord(ContainerLaunchContext.class);
+        amClc.setLocalResources(resources);
+        amClc.setEnvironment(prepareEnv());
 
-//        ApplicationSubmissionContext appSc = newApp.getApplicationSubmissionContext();
-//        appSc.setApplicationName("Yarn_demo");
-//        appSc.setApplicationType("Yarn_hello");
-//        appSc.setAMContainerSpec(amClc);
-        //appSc.setQueue();
-////            appSc.setPriority(Priority.newInstance(0));
-//        Resource amResource = Records.newRecord(Resource.class);
-//        amResource.setMemory(1024);
-//        amResource.setVirtualCores(1);
-//        appSc.setResource(amResource);
-//
-//        yarnClient.submitApplication(appSc);
+        List<String> appMasterArgs = new ArrayList<>(20);
+        appMasterArgs.add("${JAVA_HOME}" + "/bin/java");
+        appMasterArgs.add("-Xms" + conf.getInt(ThalloConfiguration.THALLO_AM_MEMORY, ThalloConfiguration.DEFAULT_THALLO_AM_MEMORY) + "m");
+        appMasterArgs.add("-Xmx" + conf.getInt(ThalloConfiguration.THALLO_AM_MEMORY, ThalloConfiguration.DEFAULT_THALLO_AM_MEMORY) + "m");
+        appMasterArgs.add(ThalloApplicationMaster.class.getName());
+        appMasterArgs.add("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR
+                + "/" + ApplicationConstants.STDOUT);
+        appMasterArgs.add("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR
+                + "/" + ApplicationConstants.STDERR);
+        amClc.setCommands(appMasterArgs);
 
-//        ApplicationSubmissionContext applicationContext = newAPP.getApplicationSubmissionContext();
-//        applicationContext.setApplicationId(applicationId);
-//        applicationContext.setApplicationName(clientArguments.appName);
-//        applicationContext.setApplicationType(clientArguments.appType);
-//
+        ApplicationSubmissionContext appSc = newApp.getApplicationSubmissionContext();
+        appSc.setApplicationName(clientArguments.appName);
+        appSc.setApplicationType(clientArguments.appType);
+        appSc.setAMContainerSpec(amClc);
+        appSc.setQueue(clientArguments.queue);
+
+        Resource amResource = Records.newRecord(Resource.class);
+        amResource.setMemory(conf.getInt(ThalloConfiguration.THALLO_AM_MEMORY, ThalloConfiguration.DEFAULT_THALLO_AM_MEMORY));
+        amResource.setVirtualCores(conf.getInt(ThalloConfiguration.THALLO_AM_VCORES, ThalloConfiguration.DEDAULT_THALLO_AM_VCORE));
+        appSc.setResource(amResource);
+
+        yarnClient.submitApplication(appSc);
+
 
         return true;
     }
@@ -121,24 +120,34 @@ public class Client {
         return jobConfPath;
     }
 
-    private Path uploadAppMasterJar(){
-        return null;
+    private Path uploadAppMasterJar() throws IOException {
+        Path appJarSrc = new Path(clientArguments.appMasterJar);
+        Path appJarDst = Utilities
+                .getRemotePath(conf, applicationId, ThalloConfiguration.THALLO_APP_MASTER_NAME);
+        logger.info("Copying " + appJarSrc + " to remote path " + appJarDst.toString());
+        dfs.copyFromLocalFile(false, true, appJarSrc, appJarDst);
+        return appJarDst;
     }
 
     private Map<String, LocalResource> prepareLocalResource(Path configFile, Path jarPath) throws IOException {
         Map<String, LocalResource> localResource = new HashMap<>();
-//        Path jarResource = copyToHDFS(jarPath, hdfsPath);
-//        LocalResource resource = Records.newRecord(LocalResource.class);
-//        resource.setResource(ConverterUtils.getYarnUrlFromPath(jarResource));
-//        resource.setType(LocalResourceType.FILE);
-//        resource.setVisibility(LocalResourceVisibility.APPLICATION);
-//        FileStatus destStatus = dfs.getFileStatus(jarResource);
-//        resource.setSize(destStatus.getLen());
-//        resource.setTimestamp(destStatus.getModificationTime());
-//        File jarFile = new File(jarPath);
-//        localResource.put(jarFile.getName(), resource);
+        localResource.put(configFile.getName(), Utilities.createApplicationResource(dfs, configFile, LocalResourceType.FILE));
+        localResource.put(jarPath.getName(), Utilities.createApplicationResource(dfs, jarPath, LocalResourceType.FILE));
         return localResource;
+    }
 
+    private Map<String, String> prepareEnv(){
+        Map<String, String> env = new HashMap<>();
+        StringBuilder classPathEnv = new StringBuilder();
+        classPathEnv.append("$PWD/*");
+
+        for (String c : conf.getStrings(YarnConfiguration.YARN_APPLICATION_CLASSPATH,
+                YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
+            classPathEnv.append(":");
+            classPathEnv.append(c.trim());
+        }
+        env.put("CLASSPATH", classPathEnv.toString());
+        return env;
     }
 
 

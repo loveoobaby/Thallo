@@ -33,6 +33,8 @@ public class ThalloConfiguration extends YarnConfiguration {
 
     public static final String DEFAULT_THALLO_STAGING_DIR = "/tmp/thallo/staging";
 
+    public static final String THALLO_APP_MASTER_NAME = "AppMaster.jar";
+
 
 
 }
