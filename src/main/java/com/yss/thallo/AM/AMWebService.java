@@ -1,7 +1,7 @@
 package com.yss.thallo.AM;
 
 import com.yss.thallo.api.ApplicationContext;
-import com.yss.thallo.web.ThalloVerticle;
+import com.yss.thallo.web.WebVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import org.apache.hadoop.conf.Configuration;
@@ -23,7 +23,7 @@ public class AMWebService extends AbstractService {
     @Override
     public void start() {
 
-        Vertx.vertx().deployVerticle(ThalloVerticle.class, new DeploymentOptions());
+        Vertx.vertx().deployVerticle(WebVerticle.class, new DeploymentOptions());
 
     }
 

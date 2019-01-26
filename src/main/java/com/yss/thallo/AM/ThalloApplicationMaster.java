@@ -10,6 +10,7 @@ import org.apache.hadoop.ipc.RPC;
 import org.apache.hadoop.service.CompositeService;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.protocolrecords.AllocateResponse;
+import org.apache.hadoop.yarn.api.protocolrecords.RegisterApplicationMasterResponse;
 import org.apache.hadoop.yarn.api.records.*;
 import org.apache.hadoop.yarn.client.api.AMRMClient;
 import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync;
@@ -34,6 +35,7 @@ public class ThalloApplicationMaster extends CompositeService {
         private ApplicationAttemptId applicationAttemptID;
         private RMCallbackHandler rmCallbackHandler;
         private AMRMClientAsync amrmAsync;
+        private String applicationMasterHostname;
 
         public ThalloApplicationMaster() {
             super(ThalloApplicationMaster.class.getName());
@@ -53,6 +55,10 @@ public class ThalloApplicationMaster extends CompositeService {
                         "Application Attempt Id is not available in environment");
             }
             this.applicationContext = new RunningAppContext();
+
+            if (envs.containsKey(ApplicationConstants.Environment.NM_HOST.toString())) {
+                applicationMasterHostname = envs.get(ApplicationConstants.Environment.NM_HOST.toString());
+            }
         }
 
         private void init() throws Exception {
@@ -66,12 +72,10 @@ public class ThalloApplicationMaster extends CompositeService {
         }
 
         private void run() throws InterruptedException, IOException, YarnException {
-            logger.info("run ...........");
-
             try {
                 logger.info("registerApplicationMaster ...........");
-                amrmAsync.registerApplicationMaster(InetAddress.getLocalHost().getCanonicalHostName(), 0, "");
-
+                RegisterApplicationMasterResponse response = amrmAsync.registerApplicationMaster(applicationMasterHostname, 0, "http://" + applicationMasterHostname + ":8080/hello");
+                Runtime.getRuntime().addShutdownHook(new CleanAMThread());
             } catch (Exception e) {
                 logger.error("", e);
                 amrmAsync.unregisterApplicationMaster(FinalApplicationStatus.FAILED, "", "");

@@ -9,9 +9,11 @@ import io.vertx.ext.web.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ThalloVerticle extends AbstractVerticle {
+public class WebVerticle extends AbstractVerticle {
 
-    private Logger logger = LoggerFactory.getLogger(ThalloVerticle.class);
+    private Logger logger = LoggerFactory.getLogger(WebVerticle.class);
+
+    public volatile static int port;
 
     @Override
     public void start() throws Exception {
@@ -20,7 +22,12 @@ public class ThalloVerticle extends AbstractVerticle {
         router.route("/hello").handler(routingContext -> {
             routingContext.response().putHeader("content-type", "text/html").end("Hello World!");
         });
-        vertx.createHttpServer().requestHandler(router).listen(8080);
+        vertx.createHttpServer().requestHandler(router).listen(port, r->{
+            if(r.succeeded()){
+                logger.info("listen {}", port);
+            }
+        });
+
     }
 
     @Override

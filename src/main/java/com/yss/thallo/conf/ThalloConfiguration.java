@@ -39,6 +39,8 @@ public class ThalloConfiguration extends YarnConfiguration {
 
     public static final String THALLO_APP_MASTER_NAME = "AppMaster.jar";
 
+    public static final int DEFAULT_THALLO_WEB_PORT = 10321;
+
 
 
 

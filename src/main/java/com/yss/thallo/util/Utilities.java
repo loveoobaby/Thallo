@@ -12,6 +12,8 @@ import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
 
 public class Utilities {
 
@@ -33,6 +35,34 @@ public class Utilities {
         localResource.setType(type);
         localResource.setVisibility(LocalResourceVisibility.APPLICATION);
         return localResource;
+    }
+
+    public static int findUnusedPort(int startPort){
+        int i = 0;
+        while (i < 2) {
+            if (!Utilities.isPortUsing(startPort + i)) {
+                startPort = startPort + i;
+                break;
+            }
+            i++;
+        }
+        if (i == 2) {
+            throw new RuntimeException("can not find useful port");
+        }
+
+        return startPort;
+    }
+
+
+    public static boolean isPortUsing(int port) {
+        boolean flag = false;
+        try {
+            InetAddress Address = InetAddress.getLocalHost();
+            Socket socket = new Socket(Address,port);  //建立一个Socket连接
+            flag = true;
+        } catch (Exception e) {
+        }
+        return flag;
     }
 
 }
