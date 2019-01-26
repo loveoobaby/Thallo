@@ -1,12 +1,12 @@
 package com.yss.thallo.Message;
 
-public class MsgWapper<T> {
+public class MsgWapper {
 
     private String msgType;
 
-    private T data;
+    private String data;
 
-    public MsgWapper(String msgType, T data){
+    public MsgWapper(String msgType, String data){
         this.msgType = msgType;
         this.data = data;
     }
@@ -19,11 +19,11 @@ public class MsgWapper<T> {
         this.msgType = msgType;
     }
 
-    public T getData() {
+    public String getData() {
         return data;
     }
 
-    public void setData(T data) {
+    public void setData(String data) {
         this.data = data;
     }
 }

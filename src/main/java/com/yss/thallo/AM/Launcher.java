@@ -1,5 +1,6 @@
 package com.yss.thallo.AM;
 
+import com.yss.thallo.Message.CustomMessage;
 import com.yss.thallo.Message.MsgWapper;
 import com.yss.thallo.conf.ThalloConfiguration;
 import com.yss.thallo.util.Utilities;
@@ -39,7 +40,7 @@ public class Launcher {
                                 .setWorkerPoolSize(1);
                         vertx.deployVerticle(AppMasterVerticle.class, amOptions, amr ->{
                             if(amr.succeeded()){
-                                vertx.eventBus().send("am", new MsgWapper<String>("init", ""));
+                                vertx.eventBus().send("am", new CustomMessage("init", null));
                             }
                         });
                     }else {
