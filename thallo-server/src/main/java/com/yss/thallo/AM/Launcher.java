@@ -40,7 +40,7 @@ public class Launcher {
                                 .setWorkerPoolSize(1);
                         vertx.deployVerticle(AppMasterVerticle.class, amOptions, amr ->{
                             if(amr.succeeded()){
-                                vertx.eventBus().send("am", new CustomMessage("init", null));
+//                                vertx.eventBus().send("am", new CustomMessage("init", null));
                             }
                         });
                     }else {

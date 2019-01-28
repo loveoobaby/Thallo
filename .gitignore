@@ -2,4 +2,6 @@
 .idea
 *.iml
 
+.vertx/
 target/
+webroot/

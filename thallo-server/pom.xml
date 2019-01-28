@@ -167,6 +167,36 @@
                 <artifactId>maven-antrun-plugin</artifactId>
                 <version>1.7</version>
                 <executions>
+
+                    <execution>
+                        <id>package_ui</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <echo message="package ui project"/>
+                                <exec executable="npm"
+                                      dir="${project.basedir}/../thallo-ui">
+                                    <arg value="run"/>
+                                    <arg value="build"/>
+                                </exec>
+                                <copy file="${project.basedir}/../thallo-ui/dist/index.html"
+                                      tofile="${project.basedir}/src/main/resources/webroot/index.html"/>
+                                <copy file="${project.basedir}/../thallo-ui/dist/umi.css"
+                                      tofile="${project.basedir}/src/main/resources/webroot/umi.css"></copy>
+                                <copy file="${project.basedir}/../thallo-ui/dist/umi.js"
+                                      tofile="${project.basedir}/src/main/resources/webroot/umi.js"></copy>
+                                <exec executable="cp" dir="${project.basedir}/../thallo-ui/dist">
+                                    <arg value="-r"></arg>
+                                    <arg value="${project.basedir}/../thallo-ui/dist/static"/>
+                                    <arg value="${project.basedir}/src/main/resources/webroot/static"></arg>
+                                </exec>
+                            </target>
+                        </configuration>
+                    </execution>
+
                     <execution>
                         <id>rename</id>
                         <phase>package</phase>
