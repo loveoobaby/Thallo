@@ -22,7 +22,26 @@ public class AppMasterVerticle extends AbstractVerticle {
         eb.consumer("am", msg -> {
             CustomMessage wapper = (CustomMessage) msg.body();
             logger.info("wapper =" + wapper);
+            switch (wapper.getMsgType()){
+                case "init":
+                    ThalloApplicationMaster appMaster;
+                    try {
+                        appMaster = new ThalloApplicationMaster();
+                        appMaster.init();
+                        appMaster.run();
+                        applicationContext = appMaster.getApplicationContext();
+                    } catch (Exception e) {
+                        logger.error("Error running ApplicationMaster", e);
+                        System.exit(1);
+                    }
+                    break;
+                case "stop":
+                    applicationContext.stopService();
+
+            }
         });
 
     }
+
+
 }

@@ -24,26 +24,26 @@ import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 
-public class ThalloApplicationMaster extends CompositeService {
+public class ThalloApplicationMaster {
 
     private static Logger logger = LoggerFactory.getLogger(ThalloConfiguration.class);
 
 
         private Configuration conf;
-        private AMWebService webService;
         private ApplicationContext applicationContext;
         private ApplicationAttemptId applicationAttemptID;
         private RMCallbackHandler rmCallbackHandler;
         private AMRMClientAsync amrmAsync;
         private String applicationMasterHostname;
 
+        public ApplicationContext getApplicationContext(){
+            return this.applicationContext;
+        }
+
         public ThalloApplicationMaster() {
-            super(ThalloApplicationMaster.class.getName());
 
             conf = new ThalloConfiguration();
 //            System.setProperty(ThalloConstants.Environment.HADOOP_USER_NAME.toString(), conf.get("hadoop.job.ugi").split(",")[0]);
-
-            this.webService = new AMWebService(this.applicationContext, conf);
 
             Map<String, String> envs = System.getenv();
             if (envs.containsKey(ApplicationConstants.Environment.CONTAINER_ID.toString())) {
@@ -61,17 +61,14 @@ public class ThalloApplicationMaster extends CompositeService {
             }
         }
 
-        private void init() throws Exception {
+        public void init() throws Exception {
             this.rmCallbackHandler = new RMCallbackHandler();
             this.amrmAsync = AMRMClientAsync.createAMRMClientAsync(1000, rmCallbackHandler);
             this.amrmAsync.init(conf);
             this.amrmAsync.start();
-
-            super.addService(this.webService);
-            super.serviceStart();
         }
 
-        private void run() throws InterruptedException, IOException, YarnException {
+        public void run() throws InterruptedException, IOException, YarnException {
             try {
                 logger.info("registerApplicationMaster ...........");
                 RegisterApplicationMasterResponse response = amrmAsync.registerApplicationMaster(applicationMasterHostname, 0, "http://" + applicationMasterHostname + ":8080/hello");
@@ -91,18 +88,16 @@ public class ThalloApplicationMaster extends CompositeService {
         public ApplicationId getApplicationID() {
             return null;
         }
-    }
 
+        @Override
+        public void stopService() {
+            try{
+                amrmAsync.unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");
+                amrmAsync.stop();
+            }catch (Exception e){
 
-    public static void main(String[] args) {
-        ThalloApplicationMaster appMaster;
-        try {
-            appMaster = new ThalloApplicationMaster();
-            appMaster.init();
-            appMaster.run();
-        } catch (Exception e) {
-            logger.error("Error running ApplicationMaster", e);
-            System.exit(1);
+            }
+            System.exit(0);
         }
     }
 
