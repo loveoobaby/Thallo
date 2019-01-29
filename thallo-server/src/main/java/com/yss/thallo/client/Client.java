@@ -1,13 +1,11 @@
 package com.yss.thallo.client;
 
 
-import com.yss.thallo.AM.ThalloApplicationMaster;
+import com.yss.thallo.AM.Launcher;
 import com.yss.thallo.conf.ThalloConfiguration;
 import com.yss.thallo.util.Utilities;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
@@ -19,14 +17,15 @@ import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.client.api.YarnClientApplication;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
-import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public class Client {
@@ -86,7 +85,7 @@ public class Client {
         appMasterArgs.add("${JAVA_HOME}" + "/bin/java");
         appMasterArgs.add("-Xms" + conf.getInt(ThalloConfiguration.THALLO_AM_MEMORY, ThalloConfiguration.DEFAULT_THALLO_AM_MEMORY) + "m");
         appMasterArgs.add("-Xmx" + conf.getInt(ThalloConfiguration.THALLO_AM_MEMORY, ThalloConfiguration.DEFAULT_THALLO_AM_MEMORY) + "m");
-        appMasterArgs.add(ThalloApplicationMaster.class.getName());
+        appMasterArgs.add(Launcher.class.getName());
         appMasterArgs.add("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR
                 + "/" + ApplicationConstants.STDOUT);
         appMasterArgs.add("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR
@@ -136,7 +135,7 @@ public class Client {
         return localResource;
     }
 
-    private Map<String, String> prepareEnv(){
+    private Map<String, String> prepareEnv() {
         Map<String, String> env = new HashMap<>();
         StringBuilder classPathEnv = new StringBuilder();
         classPathEnv.append("$PWD/*");

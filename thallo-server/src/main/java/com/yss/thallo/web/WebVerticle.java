@@ -1,14 +1,14 @@
 package com.yss.thallo.web;
 
 import com.yss.thallo.Message.CustomMessage;
-import com.yss.thallo.conf.ThalloConfiguration;
-import io.vertx.core.*;
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.SQLConnection;
-import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.StaticHandler;
@@ -36,27 +36,28 @@ public class WebVerticle extends AbstractVerticle {
 
         Future<Void> fut1 = Future.future();
         startWebApp((http) -> {
-            if(http.succeeded()){
+            if (http.succeeded()) {
                 logger.info("start listen {}", port);
                 fut1.complete();
-            }else {
+            } else {
                 startFuture.fail(http.cause());
             }
         });
 
-        fut1.compose(v -> {
-                    jdbcClient.getConnection(ar -> {
-                        if (ar.failed()) {
-                            startFuture.fail(ar.cause());
-                        } else {
-                            initDBData(Future.succeededFuture(ar.result()), startFuture);
-                        }
-                    });
-                }, startFuture);
 
-//        vertx.eventBus().consumer("web", msg -> {
-//
-//        });
+        fut1.compose(v -> {
+            jdbcClient.getConnection(ar -> {
+                if (ar.failed()) {
+                    startFuture.fail(ar.cause());
+                } else {
+                    initDBData(Future.succeededFuture(ar.result()), startFuture);
+                }
+            });
+        }, startFuture);
+
+        vertx.eventBus().consumer("web", msg -> {
+            logger.info("msg = {}", msg.body());
+        });
 
     }
 
@@ -88,9 +89,9 @@ public class WebVerticle extends AbstractVerticle {
     }
 
 
-    private void initDBData(AsyncResult<SQLConnection> result, Future<Void> fut) {
+    private void initDBData(AsyncResult<SQLConnection> result, Future<Void> fut2) {
         if (result.failed()) {
-            fut.fail(result.cause());
+            fut2.fail(result.cause());
         } else {
             SQLConnection connection = result.result();
             connection.execute(
@@ -98,17 +99,18 @@ public class WebVerticle extends AbstractVerticle {
                             "(100))",
                     ar -> {
                         if (ar.failed()) {
-                            fut.fail(ar.cause());
+                            fut2.fail(ar.cause());
                             connection.close();
-                            return;
+                        } else {
+                            fut2.complete();
+                            connection.close();
                         }
                     });
         }
     }
 
 
-
-    public void stopService(RoutingContext routingContext){
+    public void stopService(RoutingContext routingContext) {
         vertx.eventBus().send("am", new CustomMessage("stop", null));
     }
 

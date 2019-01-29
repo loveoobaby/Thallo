@@ -7,8 +7,6 @@ import org.apache.hadoop.mapred.JobConf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Iterator;
-
 public class ClientArguments {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientArguments.class);
@@ -40,7 +38,7 @@ public class ClientArguments {
         this.cliParser(args);
     }
 
-    private void init(){
+    private void init() {
         appName = "";
         appType = ThalloConfiguration.DEFAULT_APP_TYPE;
         amMem = ThalloConfiguration.DEFAULT_THALLO_AM_MEMORY;

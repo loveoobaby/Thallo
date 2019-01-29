@@ -37,7 +37,7 @@ public class Utilities {
         return localResource;
     }
 
-    public static int findUnusedPort(int startPort){
+    public static int findUnusedPort(int startPort) {
         int i = 0;
         while (i < 2) {
             if (!Utilities.isPortUsing(startPort + i)) {
@@ -58,7 +58,7 @@ public class Utilities {
         boolean flag = false;
         try {
             InetAddress Address = InetAddress.getLocalHost();
-            Socket socket = new Socket(Address,port);  //建立一个Socket连接
+            Socket socket = new Socket(Address, port);  //建立一个Socket连接
             flag = true;
         } catch (Exception e) {
         }

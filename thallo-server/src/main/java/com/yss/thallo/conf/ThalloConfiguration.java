@@ -1,9 +1,5 @@
 package com.yss.thallo.conf;
 
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.util.Shell;
-import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 
 public class ThalloConfiguration extends YarnConfiguration {
@@ -14,7 +10,7 @@ public class ThalloConfiguration extends YarnConfiguration {
         YarnConfiguration.addDefaultResource(THALLO_JOB_CONFIGURATION);
     }
 
-    public ThalloConfiguration(){
+    public ThalloConfiguration() {
         super();
     }
 
@@ -40,9 +36,6 @@ public class ThalloConfiguration extends YarnConfiguration {
     public static final String THALLO_APP_MASTER_NAME = "AppMaster.jar";
 
     public static final int DEFAULT_THALLO_WEB_PORT = 10321;
-
-
-
 
 
 }

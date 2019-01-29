@@ -6,7 +6,7 @@ public class MsgWapper {
 
     private String data;
 
-    public MsgWapper(String msgType, String data){
+    public MsgWapper(String msgType, String data) {
         this.msgType = msgType;
         this.data = data;
     }
