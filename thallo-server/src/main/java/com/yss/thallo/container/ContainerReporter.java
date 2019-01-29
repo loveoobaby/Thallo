@@ -19,6 +19,7 @@ public abstract class ContainerReporter extends Thread {
         this.containerId = containerId;
         this.eventBus = Launcher.getVertx().eventBus();
         this.metrix = new JsonObject();
+        this.metrix.put("msgType", "monitor");
         this.metrix.put("containerId", containerId.toString());
     }
 
@@ -28,10 +29,9 @@ public abstract class ContainerReporter extends Thread {
     public void run() {
         while (true) {
             try {
-                Thread.sleep(30 * 1000);
-                logger.info("update metrix");
                 this.updateProcessInfo();
                 eventBus.send("web", this.metrix);
+                Thread.sleep(30 * 1000);
             } catch (Exception e) {
                 logger.error("", e);
             }
