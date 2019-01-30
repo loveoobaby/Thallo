@@ -29,9 +29,10 @@ public abstract class ContainerReporter extends Thread {
     public void run() {
         while (true) {
             try {
+                logger.info("updateProcessInfo");
                 this.updateProcessInfo();
                 eventBus.send("web", this.metrix);
-                Thread.sleep(30 * 1000);
+                Thread.sleep(5 * 1000);
             } catch (Exception e) {
                 logger.error("", e);
             }

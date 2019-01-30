@@ -24,7 +24,7 @@ import java.util.Map;
 
 public class ThalloApplicationMaster {
 
-    private static Logger logger = LoggerFactory.getLogger(ThalloConfiguration.class);
+    private static Logger logger = LoggerFactory.getLogger(ThalloApplicationMaster.class);
 
 
     private Configuration conf;
@@ -39,6 +39,7 @@ public class ThalloApplicationMaster {
     public ApplicationContext getApplicationContext() {
         return this.applicationContext;
     }
+
 
     public ThalloApplicationMaster() {
 
@@ -59,6 +60,8 @@ public class ThalloApplicationMaster {
         if (envs.containsKey(ApplicationConstants.Environment.NM_HOST.toString())) {
             applicationMasterHostname = envs.get(ApplicationConstants.Environment.NM_HOST.toString());
         }
+
+
     }
 
     public void init() throws Exception {
@@ -68,7 +71,7 @@ public class ThalloApplicationMaster {
         this.amrmAsync.start();
 
         logger.info("init am reporter");
-        reporter = new AMReporter(this.containerId);
+        reporter = new AMReporter(containerId);
         reporter.start();
     }
 
@@ -89,7 +92,7 @@ public class ThalloApplicationMaster {
 
         @Override
         public ApplicationId getApplicationID() {
-            return null;
+            return applicationAttemptID.getApplicationId();
         }
 
         @Override
@@ -101,6 +104,21 @@ public class ThalloApplicationMaster {
 
             }
             System.exit(0);
+        }
+
+        @Override
+        public ContainerId getContainerId() {
+            return containerId;
+        }
+
+        @Override
+        public String getAppMasterHostName() {
+            return applicationMasterHostname;
+        }
+
+        @Override
+        public String getConf(String key) {
+            return conf.get(key);
         }
     }
 

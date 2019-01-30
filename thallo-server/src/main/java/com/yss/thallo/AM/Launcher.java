@@ -49,6 +49,7 @@ public class Launcher {
                         });
                     } else {
                         logger.error("init web service error", r.cause());
+                        System.exit(-1);
                     }
                 });
             } else {

@@ -1,8 +1,8 @@
 
 // ref: https://umijs.org/config/
 export default {
-  base: '/static',
   treeShaking: true,
+
   plugins: [
     // ref: https://umijs.org/plugin/umi-plugin-react.html
     ['umi-plugin-react', {
@@ -24,4 +24,8 @@ export default {
       },
     }],
   ],
+
+  proxy: {
+
+  }
 }

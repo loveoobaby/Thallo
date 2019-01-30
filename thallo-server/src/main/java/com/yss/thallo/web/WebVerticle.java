@@ -2,10 +2,7 @@ package com.yss.thallo.web;
 
 import com.google.common.collect.Lists;
 import com.yss.thallo.Message.CustomMessage;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
+import io.vertx.core.*;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
@@ -70,15 +67,14 @@ public class WebVerticle extends AbstractVerticle {
             JsonObject msgData = (JsonObject) msg.body();
             switch (msgData.getString("msgType")) {
                 case "monitor":
-                    jdbcClient.getConnection(ar -> {
-                        if (ar.failed()) {
-                            logger.info("");
-                        } else {
-                            insert(ar.result(), msgData);
-                        }
-                    });
+                    insert("INSERT INTO monitor (id, container_id, cpu, memory, time) VALUES ?, ?, ?, ?, ?",
+                            new JsonArray().add(monitorId.incrementAndGet()).
+                                    add(msgData.getString("containerId")).add(msgData.getDouble("cpu")).
+                                    add(msgData.getDouble("memory")).add(new Date().getTime()));
                     break;
-                case "2":
+                case "registerAm":
+                    insert("INSERT INTO containers (container_id, host_name, role) VALUES ?, ?, ?",
+                            new JsonArray().add(msgData.getString("containerId")).add(msgData.getString("hostName")).add("ApplicationMaster"));
                     break;
             }
         });
@@ -87,7 +83,6 @@ public class WebVerticle extends AbstractVerticle {
 
     private void startWebApp(Handler<AsyncResult<HttpServer>> next) {
         Router router = Router.router(vertx);
-
 
         {
             // 处理静态资源
@@ -104,6 +99,8 @@ public class WebVerticle extends AbstractVerticle {
         {
             //关闭服务
             router.get("/stop").handler(this::stopService);
+            // 获取监控数据
+            router.get("/monitor").handler(this::queryMonitor);
         }
 
         //最后一个Route
@@ -113,13 +110,6 @@ public class WebVerticle extends AbstractVerticle {
         }).failureHandler(context -> {
             context.response().end("global error process");
         });
-
-
-        {
-            // 获取监控数据
-            router.get("/monitor").handler(this::queryMonitor);
-
-        }
 
         vertx.createHttpServer().requestHandler(router).listen(port, next::handle);
     }
@@ -155,44 +145,89 @@ public class WebVerticle extends AbstractVerticle {
         vertx.eventBus().send("am", new CustomMessage("stop", null));
     }
 
-    private void insert(SQLConnection connection, JsonObject data) {
-        String sql = "INSERT INTO monitor (id, container_id, cpu, memory, time) VALUES ?, ?, ?, ?, ?";
-        connection.updateWithParams(sql,
-                new JsonArray().add(monitorId.incrementAndGet()).
-                        add(data.getString("containerId")).add(data.getDouble("cpu")).
-                        add(data.getDouble("memory")).add(new Date().getTime()),
+    private void insert(String sql, JsonArray params){
+        jdbcClient.getConnection(ar -> {
+            if (ar.failed()) {
+                logger.error("", ar.cause());
+            } else {
+                insert(ar.result(), sql, params);
+            }
+        });
+    }
+
+    private void insert(SQLConnection connection, String sql, JsonArray params) {
+        connection.updateWithParams(sql, params,
                 (ar) -> {
-                    if(ar.failed()){
+                    if (ar.failed()) {
                         logger.error("insert failed", ar.cause());
                     }
                     connection.close();
                 });
     }
 
-    private void queryMonitor(RoutingContext routingContext){
+
+    private void queryMonitor(RoutingContext routingContext) {
         HttpServerResponse response = routingContext.response();
         response.putHeader("content-type", "application/json");
-        jdbcClient.getConnection(r->{
-            if(r.failed()){
+        JsonObject result = new JsonObject();
+
+        jdbcClient.getConnection(r -> {
+            if (r.failed()) {
                 logger.error("", r.cause());
-            }else {
+            } else {
                 SQLConnection connection = r.result();
-                connection.query("select * from monitor", rs -> {
-                    if(rs.succeeded()){
-                        JsonArray monitors = new JsonArray();
-                        for (JsonArray line : rs.result().getResults()) {
-                            monitors.add(line);
-                        }
-                        response.write(monitors.encode()).end();
+
+                Future<JsonObject> amMeta = Future.future();
+                vertx.eventBus().send("am", new CustomMessage("meta", null), amr ->{
+                    if(amr.succeeded()){
+                        amMeta.complete((JsonObject) amr.result().body());
                     }else {
-                        logger.error("", rs.cause());
+                        response.end("wrong");
+                        amMeta.fail(amr.cause());
                     }
-                }).close();
+                });
+
+                amMeta.setHandler(am -> {
+                    if(am.succeeded()){
+                        
+                        result.put("appInfo", am.result());
+                        Future<ResultSet> monitors = Future.future();
+                        Future<ResultSet> containers = Future.future();
+
+                        connection.query("select * from monitor ", rs -> {
+                            if (rs.succeeded()) {
+                                monitors.complete(rs.result());
+                            } else {
+                                logger.error("", rs.cause());
+                            }
+                        });
+
+                        connection.query("select * from containers", rs -> {
+                            if (rs.succeeded()) {
+                                containers.complete(rs.result());
+                            } else {
+                                logger.error("", rs.cause());
+                            }
+                        });
+
+                        CompositeFuture.all(monitors, containers).setHandler(ar->{
+                            if(ar.succeeded()){
+                                result.put("data", monitors.result().getResults());
+                                result.put("containers", containers.result().getResults());
+                                response.end(result.encode());
+                            }
+                            logger.info("CompositeFuture.all");
+                            connection.close();
+                        });
+                    }else {
+                        logger.error("", am.cause());
+                    }
+                });
+
+
             }
         });
     }
-
-
 
 
 }

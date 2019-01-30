@@ -9,4 +9,11 @@ module.exports = {
       '@': require('path').resolve(__dirname, 'src'),
     },
   },
+
+  devServer: {
+    proxy: {
+      '/monitor': 'http://localhost:10321/monitor'
+    }
+  }
+
 };

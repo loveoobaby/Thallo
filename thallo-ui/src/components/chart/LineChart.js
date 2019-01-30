@@ -25,7 +25,7 @@ export default class LineChart extends PureComponent {
 
   render() {
     return (
-      <div id={this.state.id} style={{ width: '100%', height: 250 }}>
+      <div id={this.state.id} style={{ width: '100%', height: 300 }}>
         {this.state.id}
       </div>
     );

@@ -5,6 +5,8 @@ import com.yss.thallo.Message.CustomMessageCodec;
 import com.yss.thallo.api.ApplicationContext;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,9 +34,23 @@ public class AppMasterVerticle extends AbstractVerticle {
                         logger.error("Error running ApplicationMaster", e);
                         System.exit(1);
                     }
+                    eb.send("web", new JsonObject().put("msgType", "registerAm").
+                            put("containerId", applicationContext.getContainerId().toString()).
+                            put("hostName", applicationContext.getAppMasterHostName()));
                     break;
                 case "stop":
                     applicationContext.stopService();
+                    break;
+                case "meta":
+                    JsonObject appMeta = new JsonObject().
+                            put("applicationID", applicationContext.getApplicationID().toString()).
+                            put("amContainerId", applicationContext.getContainerId().toString()).
+                            put("rmWebHost" ,applicationContext.getConf("yarn.resourcemanager.webapp.address"));
+                    msg.reply(appMeta);
+                    break;
+
+                default:
+                    break;
 
             }
         });
