@@ -46,6 +46,7 @@ export default {
 
       // appInfo
       const applicationId = payload.appInfo.applicationID;
+      const rmWebHost = payload.appInfo.rmWebHost;
 
       return {
         ...state,
@@ -53,6 +54,7 @@ export default {
         memory: memory,
         containers: containers,
         applicationId: applicationId,
+        rmWebHost: rmWebHost,
       };
     },
 

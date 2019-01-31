@@ -1,4 +1,4 @@
-package com.yss.thallo.container;
+package com.yss.thallo.reporter;
 
 import org.apache.hadoop.yarn.api.records.ContainerId;
 

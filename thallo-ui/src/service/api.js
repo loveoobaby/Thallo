@@ -5,8 +5,9 @@ export async function stopService() {
   return request('/stop');
 }
 
-export async function fetchMonitor() {
-  return request('/monitor');
+export async function fetchMonitor(param) {
+  const url = param.currentContainer?'/monitor?currentContainer='+ param.currentContainer : '/monitor';
+  return request(url);
 }
 
 

@@ -17,15 +17,10 @@ public class ClientArguments {
     int amMem;
     int amCores;
 
-    // master docker container parameter
-    int masterDockerMemory;
-    int masterDockerVCores;
-    int masterDockerNum;
-
-    // slave docker container parameter
-    int slaveDockerMemory;
-    int slaveDockerVCores;
-    int slaveDockerNum;
+    // docker container parameter
+    int initDckerMemory;
+    int initDockerVCores;
+    int initDockerNum;
 
     // queue
     String queue;

@@ -48,6 +48,11 @@ public class AppMasterVerticle extends AbstractVerticle {
                             put("rmWebHost" ,applicationContext.getConf("yarn.resourcemanager.webapp.address"));
                     msg.reply(appMeta);
                     break;
+                case "allocate":
+                    JsonObject param = wapper.getData();
+                    applicationContext.deployContainer(param.getString("image"), param.getString("tag"),
+                            param.getInteger("memory"), param.getInteger("vcores"), param.getInteger("number"));
+                    break;
 
                 default:
                     break;

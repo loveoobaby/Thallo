@@ -1,4 +1,4 @@
-package com.yss.thallo.AM;
+package com.yss.thallo.NM;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

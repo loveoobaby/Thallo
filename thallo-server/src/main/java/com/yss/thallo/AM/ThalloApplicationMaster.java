@@ -3,16 +3,13 @@ package com.yss.thallo.AM;
 
 import com.yss.thallo.api.ApplicationContext;
 import com.yss.thallo.conf.ThalloConfiguration;
-import com.yss.thallo.container.AMReporter;
-import com.yss.thallo.container.ContainerReporter;
+import com.yss.thallo.reporter.AMReporter;
+import com.yss.thallo.reporter.ContainerReporter;
 import com.yss.thallo.web.WebVerticle;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
-import org.apache.hadoop.yarn.api.protocolrecords.RegisterApplicationMasterResponse;
-import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
-import org.apache.hadoop.yarn.api.records.ApplicationId;
-import org.apache.hadoop.yarn.api.records.ContainerId;
-import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
+import org.apache.hadoop.yarn.api.records.*;
+import org.apache.hadoop.yarn.client.api.AMRMClient;
 import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.ConverterUtils;
@@ -78,7 +75,8 @@ public class ThalloApplicationMaster {
     public void run() throws InterruptedException, IOException, YarnException {
         try {
             logger.info("registerApplicationMaster ...........");
-            RegisterApplicationMasterResponse response = amrmAsync.registerApplicationMaster(applicationMasterHostname, 0, "http://" + applicationMasterHostname + ":" + WebVerticle.port);
+            amrmAsync.registerApplicationMaster(applicationMasterHostname, 0, "http://" + applicationMasterHostname + ":" + WebVerticle.port);
+
             Runtime.getRuntime().addShutdownHook(new CleanAMThread());
         } catch (Exception e) {
             logger.error("", e);
@@ -119,6 +117,21 @@ public class ThalloApplicationMaster {
         @Override
         public String getConf(String key) {
             return conf.get(key);
+        }
+
+        @Override
+        public void deployContainer(String dockerIamge, String dockerTag, int memory, int vcores, int number) {
+            Resource resource = Resource.newInstance(memory * 1024, vcores);
+            AMRMClient.ContainerRequest request = new AMRMClient.ContainerRequest(resource, null, null, Priority.newInstance(0));
+            for (int i = 0; i < number; i++) {
+                amrmAsync.addContainerRequest(request);
+                DockerContainer container = new DockerContainer(memory * 1024, vcores);
+                container.setImageName(dockerIamge);
+                container.setImageTag(dockerTag);
+                rmCallbackHandler.needDockerContainers.add(container);
+            }
+
+            logger.info("send request");
         }
     }
 

@@ -14,7 +14,11 @@ public interface ApplicationContext {
 
     String getAppMasterHostName();
 
-    public String getConf(String key);
+    String getConf(String key);
+
+    void deployContainer(String dockerIamge, String dockerTag, int memory, int vcores, int number);
+
+
 
 
 }

@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.yss.thallo.Message.CustomMessage;
 import io.vertx.core.*;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -101,6 +102,8 @@ public class WebVerticle extends AbstractVerticle {
             router.get("/stop").handler(this::stopService);
             // 获取监控数据
             router.get("/monitor").handler(this::queryMonitor);
+            // 发布新的容器
+            router.get("/deploy").handler(this::allocateNewContainer);
         }
 
         //最后一个Route
@@ -108,6 +111,7 @@ public class WebVerticle extends AbstractVerticle {
             logger.error("url 404 ={}", context.request().uri());
             context.response().end("404");
         }).failureHandler(context -> {
+
             context.response().end("global error process");
         });
 
@@ -189,7 +193,7 @@ public class WebVerticle extends AbstractVerticle {
 
                 amMeta.setHandler(am -> {
                     if(am.succeeded()){
-                        
+
                         result.put("appInfo", am.result());
                         Future<ResultSet> monitors = Future.future();
                         Future<ResultSet> containers = Future.future();
@@ -227,6 +231,26 @@ public class WebVerticle extends AbstractVerticle {
 
             }
         });
+    }
+
+    private void allocateNewContainer(RoutingContext routingContext){
+        HttpServerResponse response = routingContext.response();
+        response.putHeader("content-type", "application/json");
+        HttpServerRequest request = routingContext.request();
+        JsonObject result = new JsonObject();
+
+        // image=ubuntu&tag=1&vcores=1&memory=1&number=1
+        String image = request.getParam("image");
+        String tag = request.getParam("tag");
+        int memory = Integer.valueOf(request.getParam("memory"));
+        int vcores = Integer.valueOf(request.getParam("vcores"));
+        int number = Integer.valueOf(request.getParam("number"));
+        JsonObject param = new JsonObject().put("image", image)
+                .put("tag", tag).put("memory", memory)
+                .put("vcores", vcores).put("number", number);
+
+        vertx.eventBus().send("am", new CustomMessage("allocate", param));
+        response.end("请求已提交");
     }
 
 

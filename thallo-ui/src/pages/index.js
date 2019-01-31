@@ -6,6 +6,7 @@ import { Table, Divider, Tag, Card, Menu } from 'antd';
 import { Modal, Button } from 'antd';
 import request from '../utils/request';
 import LineChart from '../components/chart/LineChart';
+import AddContainer from '../components/AddContainer/index'
 
 @connect(({ monitor, loading }) => ({
   monitor,
@@ -14,6 +15,7 @@ class Index extends PureComponent {
 
   state = {
     currentContainer: undefined,
+    showAddContainer: false,
   };
 
   componentDidMount = () => {
@@ -43,9 +45,29 @@ class Index extends PureComponent {
     const { dispatch } = this.props;
     dispatch({
       type: 'monitor/queryMonitorInfo',
-
+      payload: {
+        currentContainer: this.state.currentContainer,
+      },
     });
   };
+
+  addNewContainer = () => {
+    this.setState({
+      showAddContainer: true
+    })
+  };
+
+  closeNewContainer = () => {
+    this.setState({
+      showAddContainer: false
+    })
+  };
+
+
+  open_new_window(url) {
+    const w = window.open('about:blank');
+    w.location.href = url;
+  }
 
 
   render() {
@@ -71,14 +93,17 @@ class Index extends PureComponent {
       key: 'action',
       render: (text, record) => (
         <span>
-      <Button type={'primary'} href="javascript:;">Log</Button>
+      <Button type={'primary'} onClick={() => {
+        this.open_new_window('http://' + this.props.monitor.rmWebHost + '/cluster/container/' + record.containerId);
+      }}>Log</Button>
     </span>
       ),
     }];
 
+
     const operations = (
       <div>
-        <Button type={'primary'} style={{ marginRight: 30 }}>
+        <Button type={'primary'} style={{ marginRight: 30 }} onClick={this.addNewContainer}>
           Add New Container
         </Button>
         <Button type={'danger'} onClick={this.clickStopApp}>
@@ -116,8 +141,7 @@ class Index extends PureComponent {
                 }, this.updateModal);// 点击行
               },
             };
-          }}
-                 columns={columns} dataSource={this.props.monitor.containers}/>
+          }} columns={columns} dataSource={this.props.monitor.containers}/>
         </Card>
 
         <Card
@@ -147,7 +171,7 @@ class Index extends PureComponent {
             </Card>
           </Col>
         </Card>
-
+        <AddContainer show={this.state.showAddContainer} onCancle={this.closeNewContainer}/>
       </div>
 
     );
