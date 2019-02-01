@@ -200,7 +200,6 @@ public class WebVerticle extends AbstractVerticle {
 
                 amMeta.setHandler(am -> {
                     if(am.succeeded()){
-
                         result.put("appInfo", am.result());
                         Future<ResultSet> monitors = Future.future();
                         Future<ResultSet> containers = Future.future();
@@ -245,7 +244,6 @@ public class WebVerticle extends AbstractVerticle {
         HttpServerResponse response = routingContext.response();
         response.putHeader("content-type", "application/json");
         HttpServerRequest request = routingContext.request();
-        JsonObject result = new JsonObject();
 
         // image=ubuntu&tag=1&vcores=1&memory=1&number=1
         String image = request.getParam("image");
