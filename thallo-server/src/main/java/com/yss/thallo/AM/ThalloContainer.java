@@ -3,7 +3,7 @@ package com.yss.thallo.AM;
 import java.util.List;
 import java.util.Objects;
 
-public class DockerContainer {
+public class ThalloContainer {
 
     private String imageName;
     private String imageTag;
@@ -11,11 +11,11 @@ public class DockerContainer {
     private int vcores;
     private List<String> bindPorts;
 
-    public DockerContainer(){
+    public ThalloContainer(){
 
     }
 
-    public DockerContainer(int memeory, int vcores){
+    public ThalloContainer(int memeory, int vcores){
         this.memeory = memeory;
         this.vcores = vcores;
     }
@@ -74,7 +74,7 @@ public class DockerContainer {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        DockerContainer that = (DockerContainer) o;
+        ThalloContainer that = (ThalloContainer) o;
         return memeory == that.memeory &&
                 vcores == that.vcores;
     }

@@ -1,7 +1,9 @@
 package com.yss.thallo.client;
 
 
+import com.google.common.collect.Lists;
 import com.yss.thallo.AM.Launcher;
+import com.yss.thallo.api.ThalloConstants;
 import com.yss.thallo.conf.ThalloConfiguration;
 import com.yss.thallo.util.Utilities;
 import org.apache.commons.cli.ParseException;
@@ -57,6 +59,7 @@ public class Client {
         conf.set(ThalloConfiguration.THALLO_AM_VCORES, String.valueOf(clientArguments.amCores));
         conf.set(ThalloConfiguration.THALLO_QUEUE, clientArguments.queue);
 
+
         yarnClient = YarnClient.createYarnClient();
         yarnClient.init(conf);
         yarnClient.start();
@@ -79,7 +82,7 @@ public class Client {
 
         ContainerLaunchContext amClc = Records.newRecord(ContainerLaunchContext.class);
         amClc.setLocalResources(resources);
-        amClc.setEnvironment(prepareEnv());
+        amClc.setEnvironment(prepareEnv(resources));
 
         List<String> appMasterArgs = new ArrayList<>(20);
         appMasterArgs.add("${JAVA_HOME}" + "/bin/java");
@@ -132,10 +135,12 @@ public class Client {
         Map<String, LocalResource> localResource = new HashMap<>();
         localResource.put(configFile.getName(), Utilities.createApplicationResource(dfs, configFile, LocalResourceType.FILE));
         localResource.put(jarPath.getName(), Utilities.createApplicationResource(dfs, jarPath, LocalResourceType.FILE));
+
         return localResource;
     }
 
-    private Map<String, String> prepareEnv() {
+
+    private Map<String, String> prepareEnv(Map<String, LocalResource> resourceMap) {
         Map<String, String> env = new HashMap<>();
         StringBuilder classPathEnv = new StringBuilder();
         classPathEnv.append("$PWD/*");
@@ -146,6 +151,31 @@ public class Client {
             classPathEnv.append(c.trim());
         }
         env.put("CLASSPATH", classPathEnv.toString());
+
+        List<String> resourceName = Lists.newArrayList();
+        List<String> resourcePath = Lists.newArrayList();
+        List<String> resourceSize = Lists.newArrayList();
+        List<String> resourceTimeStamp = Lists.newArrayList();
+        List<String> resourceVisib = Lists.newArrayList();
+        List<String> resourceType = Lists.newArrayList();
+        for(Map.Entry<String, LocalResource> entry : resourceMap.entrySet()){
+            resourceName.add(entry.getKey());
+            URL url = entry.getValue().getResource();
+            String filePath = url.getPort() == -1 ? url.getScheme() + "://" + url.getHost() + url.getFile() :
+                    url.getScheme() + "://" + url.getHost() +":" + url.getPort()  + url.getFile();
+            resourcePath.add(filePath);
+            resourceSize.add(String.valueOf(entry.getValue().getSize()));
+            resourceTimeStamp.add(String.valueOf(entry.getValue().getTimestamp()));
+            resourceVisib.add(entry.getValue().getVisibility().toString());
+            resourceType.add(entry.getValue().getType().name());
+        }
+
+        env.put(ThalloConstants.Environment.THALLO_RESOURCE_NAME.name(), String.join(",", resourceName));
+        env.put(ThalloConstants.Environment.THALL_RESOURCE_URL.name(), String.join(",", resourcePath));
+        env.put(ThalloConstants.Environment.THALLO_RESOURCE_SIZE.name(), String.join(",", resourceSize));
+        env.put(ThalloConstants.Environment.THALLO_RESOURCE_TIMESTAP.name(), String.join(",", resourceTimeStamp));
+        env.put(ThalloConstants.Environment.THALLO_RESOURCE_VISUAL.name(), String.join(",", resourceVisib));
+        env.put(ThalloConstants.Environment.THALLO_RESOURCE_TYPE.name(), String.join(",", resourceType));
         return env;
     }
 

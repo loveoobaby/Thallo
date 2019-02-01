@@ -37,5 +37,19 @@ public class ThalloConfiguration extends YarnConfiguration {
 
     public static final int DEFAULT_THALLO_WEB_PORT = 10321;
 
+    public static final String THALLO_RESOURCE_NAME_KEY = "thallo.resource.name";
+
+    public static final String THALLO_RESOURCE_URL_KEY = "thallo.resource.url";
+
+    public static final String THALLO_RESOURCE_SIZE_KEY = "thallo.resource.size";
+
+    public static final String THALLO_RESOURCE_TIMESTAMP_KEY = "thallo.resource.timestamp";
+
+    public static final String THALLO_RESOURCE_VISUAL_KEY = "thallo.resource.visual";
+
+
+
+
+
 
 }

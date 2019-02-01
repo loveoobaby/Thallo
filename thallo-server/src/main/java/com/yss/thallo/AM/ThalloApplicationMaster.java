@@ -1,16 +1,21 @@
 package com.yss.thallo.AM;
 
 
+import com.yss.thallo.NM.NMCallbackHandler;
+import com.yss.thallo.api.ApplicationContainerProtocol;
 import com.yss.thallo.api.ApplicationContext;
 import com.yss.thallo.conf.ThalloConfiguration;
 import com.yss.thallo.reporter.AMReporter;
 import com.yss.thallo.reporter.ContainerReporter;
 import com.yss.thallo.web.WebVerticle;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.ipc.RPC;
+import org.apache.hadoop.ipc.Server;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.*;
 import org.apache.hadoop.yarn.client.api.AMRMClient;
 import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync;
+import org.apache.hadoop.yarn.client.api.async.NMClientAsync;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.slf4j.Logger;
@@ -32,6 +37,9 @@ public class ThalloApplicationMaster {
     private String applicationMasterHostname;
     private ContainerReporter reporter;
     private ContainerId containerId;
+    private NMClientAsync nmAsync;
+    private ContainerListener containerListener;
+
 
     public ApplicationContext getApplicationContext() {
         return this.applicationContext;
@@ -58,14 +66,24 @@ public class ThalloApplicationMaster {
             applicationMasterHostname = envs.get(ApplicationConstants.Environment.NM_HOST.toString());
         }
 
+        this.containerListener = new ContainerListener("ContainerListener", conf);
+
+        NMCallbackHandler nmAsyncHandler = new NMCallbackHandler();
+        this.nmAsync = NMClientAsync.createNMClientAsync(nmAsyncHandler);
+
+        this.rmCallbackHandler = new RMCallbackHandler(nmAsync, conf, containerListener);
+        this.amrmAsync = AMRMClientAsync.createAMRMClientAsync(1000, rmCallbackHandler);
 
     }
 
     public void init() throws Exception {
-        this.rmCallbackHandler = new RMCallbackHandler();
-        this.amrmAsync = AMRMClientAsync.createAMRMClientAsync(1000, rmCallbackHandler);
+        this.nmAsync.init(conf);
+        this.nmAsync.start();
+
         this.amrmAsync.init(conf);
         this.amrmAsync.start();
+
+        this.containerListener.start();
 
         logger.info("init am reporter");
         reporter = new AMReporter(containerId);
@@ -125,7 +143,7 @@ public class ThalloApplicationMaster {
             AMRMClient.ContainerRequest request = new AMRMClient.ContainerRequest(resource, null, null, Priority.newInstance(0));
             for (int i = 0; i < number; i++) {
                 amrmAsync.addContainerRequest(request);
-                DockerContainer container = new DockerContainer(memory * 1024, vcores);
+                ThalloContainer container = new ThalloContainer(memory * 1024, vcores);
                 container.setImageName(dockerIamge);
                 container.setImageTag(dockerTag);
                 rmCallbackHandler.needDockerContainers.add(container);

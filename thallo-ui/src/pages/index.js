@@ -1,12 +1,12 @@
-import styles from './index.css';
+import styles from './index.less';
 import { Row, Col } from 'antd';
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import { Table, Divider, Tag, Card, Menu } from 'antd';
+import { Table, Divider, Tag, Card, Menu, Icon } from 'antd';
 import { Modal, Button } from 'antd';
 import request from '../utils/request';
 import LineChart from '../components/chart/LineChart';
-import AddContainer from '../components/AddContainer/index'
+import AddContainer from '../components/AddContainer/index';
 
 @connect(({ monitor, loading }) => ({
   monitor,
@@ -53,14 +53,14 @@ class Index extends PureComponent {
 
   addNewContainer = () => {
     this.setState({
-      showAddContainer: true
-    })
+      showAddContainer: true,
+    });
   };
 
   closeNewContainer = () => {
     this.setState({
-      showAddContainer: false
-    })
+      showAddContainer: false,
+    });
   };
 
 
@@ -101,18 +101,6 @@ class Index extends PureComponent {
     }];
 
 
-    const operations = (
-      <div>
-        <Button type={'primary'} style={{ marginRight: 30 }} onClick={this.addNewContainer}>
-          Add New Container
-        </Button>
-        <Button type={'danger'} onClick={this.clickStopApp}>
-          Stop Application
-        </Button>
-      </div>
-    );
-
-
     return (
       <div>
         <Row>
@@ -127,25 +115,33 @@ class Index extends PureComponent {
           </Col>
         </Row>
 
-        <Card
-          title={<h1>All Containers</h1>}
-          headStyle={{ textAlign: 'left' }}
-          extra={operations}
-        >
-          <Table onRow={(record) => {
-            return {
-              onClick: () => {
-                const currentContainer = record.containerId;
-                this.setState({
-                  currentContainer,
-                }, this.updateModal);// 点击行
-              },
-            };
-          }} columns={columns} dataSource={this.props.monitor.containers}/>
-        </Card>
+        <div className={styles.userHead}>
+          <div className={styles.search}>
+            <h2>All Conatiners</h2>
+          </div>
+          <div className={styles.btn}>
+            <Button type="primary" onClick={this.addNewContainer}>
+              Add New Container
+            </Button>
+            <Button type="danger" onClick={this.clickStopApp}>
+              Stop Application
+            </Button>
+          </div>
+        </div>
+
+        <Table onRow={(record) => {
+          return {
+            onClick: () => {
+              const currentContainer = record.containerId;
+              this.setState({
+                currentContainer,
+              }, this.updateModal);// 点击行
+            },
+          };
+        }} columns={columns} dataSource={this.props.monitor.containers}/>
 
         <Card
-          title={<h1>Containers</h1>}
+          title={<h3>{this.props.monitor.currentContainer}</h3>}
           headStyle={{ textAlign: 'left' }}
         >
           <Col span={12} key={'CPU'}>

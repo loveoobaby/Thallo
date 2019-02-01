@@ -77,6 +77,12 @@ public class WebVerticle extends AbstractVerticle {
                     insert("INSERT INTO containers (container_id, host_name, role) VALUES ?, ?, ?",
                             new JsonArray().add(msgData.getString("containerId")).add(msgData.getString("hostName")).add("ApplicationMaster"));
                     break;
+                case "registerDocker":
+                    insert("INSERT INTO containers (container_id, host_name, image, role) VALUES ?, ?, ?, ?",
+                            new JsonArray().add(msgData.getString("containerId")).
+                                    add(msgData.getString("hostName")).
+                                    add(msgData.getString("image")).add("Docker"));
+                    break;
             }
         });
 
@@ -174,6 +180,7 @@ public class WebVerticle extends AbstractVerticle {
         HttpServerResponse response = routingContext.response();
         response.putHeader("content-type", "application/json");
         JsonObject result = new JsonObject();
+        String currentContainer = routingContext.request().getParam("currentContainer");
 
         jdbcClient.getConnection(r -> {
             if (r.failed()) {
@@ -197,8 +204,9 @@ public class WebVerticle extends AbstractVerticle {
                         result.put("appInfo", am.result());
                         Future<ResultSet> monitors = Future.future();
                         Future<ResultSet> containers = Future.future();
-
-                        connection.query("select * from monitor ", rs -> {
+                        String queryContainer = currentContainer != null ? currentContainer : am.result().getString("amContainerId");
+                        result.put("currentContainer", queryContainer);
+                        connection.queryWithParams("select * from monitor where container_id = ?", new JsonArray().add(queryContainer), rs -> {
                             if (rs.succeeded()) {
                                 monitors.complete(rs.result());
                             } else {
