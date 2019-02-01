@@ -12,7 +12,7 @@ Thallo是可以使yarn启停Docker容器的Yarn Application。它有以下特点
 
 + 整体结构
 
-### ![archice](/Users/yss/Documents/archice.png)
+### ![archice](./doc/archice.png)
 
 
 
@@ -20,7 +20,7 @@ Thallo运行于Yarn之上，所有它是典型的yarn app，由ApplicationMaster
 
 + AM的结构
 
-![](/Users/yss/Documents/am.png)
+![](./doc/am.png)
 
 
 
