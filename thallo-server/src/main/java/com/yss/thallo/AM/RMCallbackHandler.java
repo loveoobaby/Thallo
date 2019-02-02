@@ -1,13 +1,10 @@
 package com.yss.thallo.AM;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.yss.thallo.NM.DockerProxyContainer;
 import com.yss.thallo.api.ThalloConstants;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.*;
@@ -23,15 +20,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class RMCallbackHandler implements CallbackHandler {
-    private static final Log LOG = LogFactory.getLog(RMCallbackHandler.class);
+    private static final Log logger = LogFactory.getLog(RMCallbackHandler.class);
 
     private final List<Container> cancelContainers;
 
     public final List<Container> acquiredContainers;
 
     public final Set<String> blackHosts;
-
-    private int neededContainersCount;
 
     private final AtomicInteger acquiredContainersCount;
 
@@ -88,9 +83,6 @@ public class RMCallbackHandler implements CallbackHandler {
     }
 
 
-    public void setNeededContainersCount(int count) {
-        neededContainersCount = count;
-    }
 
     public void setContainersAllocating() {
         containersAllocating.set(true);
@@ -99,7 +91,7 @@ public class RMCallbackHandler implements CallbackHandler {
     @Override
     public void onContainersCompleted(List<ContainerStatus> containerStatuses) {
         for (ContainerStatus containerStatus : containerStatuses) {
-            LOG.info("Container " + containerStatus.getContainerId() + " completed with status "
+            logger.info("Container " + containerStatus.getContainerId() + " completed with status "
                     + containerStatus.getState().toString());
         }
     }
@@ -107,7 +99,7 @@ public class RMCallbackHandler implements CallbackHandler {
     @Override
     public void onContainersAllocated(List<Container> containers) {
         for (Container acquiredContainer : containers) {
-            LOG.info("Acquired container " + acquiredContainer.getId()
+            logger.info("Acquired container " + acquiredContainer.getId()
                     + " on host " + acquiredContainer.getNodeId().getHost()
                     + " , with the resource " + acquiredContainer.getResource().toString());
             String host = acquiredContainer.getNodeId().getHost();
@@ -125,7 +117,7 @@ public class RMCallbackHandler implements CallbackHandler {
                     }
                 }
             } else {
-                LOG.info("Add container " + acquiredContainer.getId() + " to cancel list");
+                logger.info("Add container " + acquiredContainer.getId() + " to cancel list");
                 cancelContainers.add(acquiredContainer);
             }
         }
@@ -151,7 +143,7 @@ public class RMCallbackHandler implements CallbackHandler {
 
     @Override
     public void onError(Throwable e) {
-        LOG.error("Error from RMCallback: ", e);
+        logger.error("Error from RMCallback: ", e);
     }
 
     private void startContainer(Container container, ThalloContainer thalloContainer) {
@@ -164,7 +156,7 @@ public class RMCallbackHandler implements CallbackHandler {
             launchContainer(containerLocalResource, containerEnv,
                     containerCmd, container);
         } catch (IOException e) {
-            LOG.error("", e);
+            logger.error("", e);
             startFailedContainer.add(thalloContainer);
         }
 
@@ -174,10 +166,10 @@ public class RMCallbackHandler implements CallbackHandler {
                                  Map<String, String> containerEnv,
                                  List<String> containerLaunchcommands,
                                  Container container) throws IOException {
-        LOG.info("Setting up launch context for containerID="
+        logger.info("Setting up launch context for containerID="
                 + container.getId());
-        LOG.info("container command = {}" + containerLaunchcommands);
-        LOG.info("container env = " + containerEnv);
+        logger.info("container command = {}" + containerLaunchcommands);
+        logger.info("container env = " + containerEnv);
 
         ContainerLaunchContext ctx = ContainerLaunchContext.newInstance(
                 containerLocalResource, containerEnv, containerLaunchcommands, null, null, null);
@@ -192,12 +184,14 @@ public class RMCallbackHandler implements CallbackHandler {
 
     private List<String> buildContainerLaunchCommand(ThalloContainer container) {
         List<String> containerLaunchcommands = new ArrayList<>();
-        LOG.info("Setting up container command");
+        logger.info("Setting up container command");
         Vector<CharSequence> vargs = new Vector<>(10);
         vargs.add("${JAVA_HOME}" + "/bin/java");
         vargs.add("-Xmx" + 125 + "m");
         vargs.add("-Xms" + 125 + "m");
         vargs.add(DockerProxyContainer.class.getName());
+        vargs.add(container.getImageName());
+        vargs.add(container.getImageTag());
         vargs.add("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/" + ApplicationConstants.STDOUT);
         vargs.add("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/" + ApplicationConstants.STDERR);
 
@@ -206,7 +200,7 @@ public class RMCallbackHandler implements CallbackHandler {
             containerCmd.append(str).append(" ");
         }
         containerLaunchcommands.add(containerCmd.toString());
-        LOG.info("Container launch command: " + containerLaunchcommands.toString());
+        logger.info("Container launch command: " + containerLaunchcommands.toString());
         return containerLaunchcommands;
     }
 

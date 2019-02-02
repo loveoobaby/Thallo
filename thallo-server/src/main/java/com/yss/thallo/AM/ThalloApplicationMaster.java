@@ -1,16 +1,12 @@
 package com.yss.thallo.AM;
 
 
-import com.yss.thallo.NM.NMCallbackHandler;
-import com.yss.thallo.api.ApplicationContainerProtocol;
 import com.yss.thallo.api.ApplicationContext;
 import com.yss.thallo.conf.ThalloConfiguration;
 import com.yss.thallo.reporter.AMReporter;
 import com.yss.thallo.reporter.ContainerReporter;
 import com.yss.thallo.web.WebVerticle;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.ipc.RPC;
-import org.apache.hadoop.ipc.Server;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.*;
 import org.apache.hadoop.yarn.client.api.AMRMClient;
@@ -95,7 +91,6 @@ public class ThalloApplicationMaster {
             logger.info("registerApplicationMaster ...........");
             amrmAsync.registerApplicationMaster(applicationMasterHostname, 0, "http://" + applicationMasterHostname + ":" + WebVerticle.port);
 
-            Runtime.getRuntime().addShutdownHook(new CleanAMThread());
         } catch (Exception e) {
             logger.error("", e);
             amrmAsync.unregisterApplicationMaster(FinalApplicationStatus.FAILED, "", "");

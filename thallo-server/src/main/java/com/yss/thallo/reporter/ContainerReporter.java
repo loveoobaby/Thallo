@@ -12,12 +12,10 @@ public abstract class ContainerReporter extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(ContainerReporter.class);
     protected ContainerId containerId;
     protected JsonObject metrix;
-    private EventBus eventBus;
 
 
     public ContainerReporter(ContainerId containerId) {
         this.containerId = containerId;
-        this.eventBus = Launcher.getVertx().eventBus();
         this.metrix = new JsonObject();
         this.metrix.put("msgType", "monitor");
         this.metrix.put("containerId", containerId.toString());
@@ -25,18 +23,19 @@ public abstract class ContainerReporter extends Thread {
 
     public abstract void updateProcessInfo() throws Exception;
 
+    public abstract void sendToMaster();
+
     @Override
     public void run() {
         while (true) {
             try {
                 logger.info("updateProcessInfo");
                 this.updateProcessInfo();
-                eventBus.send("web", this.metrix);
+                this.sendToMaster();
                 Thread.sleep(5 * 1000);
             } catch (Exception e) {
                 logger.error("", e);
             }
-
         }
     }
 }

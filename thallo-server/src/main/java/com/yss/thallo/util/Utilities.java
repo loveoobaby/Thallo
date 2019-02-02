@@ -10,12 +10,16 @@ import org.apache.hadoop.yarn.api.records.LocalResourceType;
 import org.apache.hadoop.yarn.api.records.LocalResourceVisibility;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 
 public class Utilities {
+
+    private static Logger logger = LoggerFactory.getLogger(Utilities.class);
 
     public static Path getRemotePath(ThalloConfiguration conf, ApplicationId appId, String fileName) {
         String pathSuffix = appId.toString() + "/" + fileName;
@@ -35,6 +39,14 @@ public class Utilities {
         localResource.setType(type);
         localResource.setVisibility(LocalResourceVisibility.APPLICATION);
         return localResource;
+    }
+
+    public static void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            logger.warn("Sleeping are Interrupted ...", e);
+        }
     }
 
     public static int findUnusedPort(int startPort) {
