@@ -38,15 +38,13 @@ AM是基于Vert.X异步非阻塞框架的Web服务。它主要的组件有：
 
 + DockerProxy
 
-
+DockerProxy是一个Java进程，通过调用docker命令启动容器，并不断监控容器的运行状态。在yarn释放容器时，会首先执行kill -15, 然后执行kill -9。当DockerProxy JVM捕获信号15时，运行自定义的ShutdownHook，在hook中执行docker kill命令保证docker容器一定会被结束。
 
 
 
 + 前端
 
-前端开发使用的React框架，数据流层
-
-，采用前后端分离的开发方式。但这种开发方式会导致yarn无法代理前端url，例如原始的css资源url为/index.css,  AM向RM注册时提供追踪url经过yarn代理后的路径变为/proxy/ $(APP_ID)/index.css。也就意味着要想访问到该资源AM返回的html文档中必须动态改变资源的路径，同理ajax的路径也要修改。但前后端分离是没办法动态改变资源的url，导致yarn代理产生404错误。我现在是直接访问AM Web服务，不经过RM，即想RM注册调用registerApplicationMaster接口时不提供appTrackingUrl。
+前端开发使用的React框架，数据流层[dva](https://github.com/dvajs/dva "With a Title")，采用前后端分离的开发方式。但这种开发方式会导致yarn无法代理前端url，例如原始的css资源url为/index.css,  AM向RM注册时提供追踪url经过yarn代理后的路径变为/proxy/ $(APP_ID)/index.css。也就意味着要想访问到该资源AM返回的html文档中必须动态改变资源的路径，同理ajax的路径也要修改。但前后端分离是没办法动态改变资源的url，导致yarn代理产生404错误。我现在是直接访问AM Web服务，不经过RM，即想RM注册调用registerApplicationMaster接口时不提供appTrackingUrl。
 
 ------
 
