@@ -103,21 +103,21 @@ Welcome to
 
 ​    打开Yarn RM的监控页面可以看到有Thallo应用在运行:
 
-![](/Users/yss/work/Thallo/doc/app_example.png)
+![](./doc/app_example.png)
 
 注意TrackingUI 不可用，这在前端介绍时已经说明过原因。目前如何获取AM监控监控地址比较麻烦。需要先查到AM的运行主机，在查看AM的日志获取端口，默认端口10321。
 
-![](/Users/yss/work/Thallo/doc/app_attemp.png)
+![](./doc/app_attemp.png)
 
 
 
-![](/Users/yss/work/Thallo/doc/app_log.png)
+![](./doc/app_log.png)
 
 
 
 查完AM的Web地址后就可以在浏览器打开如下界面：
 
-![](/Users/yss/work/Thallo/doc/ui.png)
+![](./doc/ui.png)
 
 
 
